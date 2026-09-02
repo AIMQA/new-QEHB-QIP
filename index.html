@@ -68,6 +68,13 @@ header{background:var(--dark);color:#fff;padding:14px 22px;display:flex;flex-wra
 #livebar button:hover{border-color:#00622A;color:#00622A}
 @media print{#livebar{display:none!important}}
 @media (max-width:760px){#livebar{padding:7px 12px;font-size:11.5px}}
+#syncbar{display:none;align-items:center;gap:12px;padding:7px 22px;background:#FFF4E0;border-bottom:1px solid #EAC373;font-size:12px;color:var(--navy);flex-wrap:wrap}
+#syncbar.on{display:flex}
+#syncbar b{color:#8A5A00}
+#syncbar button{border:1px solid #EAC373;background:#fff;color:var(--navy);padding:4px 10px;border-radius:7px;cursor:pointer;font:inherit;font-size:11.5px}
+#syncbar button:hover{border-color:#8A5A00;color:#8A5A00}
+@media print{#syncbar{display:none!important}}
+@media (max-width:760px){#syncbar{padding:7px 12px;font-size:11.5px}}
 #toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--dark);color:#fff;padding:11px 20px;border-radius:22px;font-size:13px;font-weight:bold;box-shadow:0 6px 20px rgba(0,0,0,.28);opacity:0;pointer-events:none;transition:opacity .25s;z-index:60;max-width:88vw;text-align:center}
 #toast.on{opacity:1}
 @media print{#toast{display:none!important}}
@@ -228,6 +235,7 @@ footer span{float:right;color:#9AA5AA}
 
 <div id="toast"></div>
 <div id="livebar"></div>
+<div id="syncbar"></div>
 <div id="pagebar"></div>
 <div id="howto"></div>
 <div class="hint" id="hint"></div>
@@ -1520,14 +1528,22 @@ function toggleCollab(){
 const SYNC_EMAIL_KEY = "aimqip.syncEmail";
 function renderSync(){
   const b = $("syncbtn");
+  const bar = $("syncbar");
   if (sync.on){
     b.textContent = "Synced \u2014 " + sync.email + "  \u00D7";
     b.className = "btn synced";
     b.title = "Click to sign out. Your projects stay on this device \u2014 signing out just stops the cloud copy.";
+    bar.className = "on";
+    bar.innerHTML = "<b>Synced</b>" +
+      "<span>" + sync.email + "</span>" +
+      "<span style=\"color:var(--grey)\">This tool can\u2019t guarantee the security of stored addresses \u2014 if you haven\u2019t already, consider signing out and back in with a burner or disposable email instead of your main one.</span>" +
+      "<button onclick=\"signInToSync()\">Sign out</button>";
   } else {
     b.textContent = "Sign in to sync";
     b.className = "btn";
     b.title = "Make your named projects follow you to another device.";
+    bar.className = "";
+    bar.innerHTML = "";
   }
 }
 function stripIds(v){ return JSON.parse(JSON.stringify(v), (k, val) => k === "id" ? undefined : val); }
