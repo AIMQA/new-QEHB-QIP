@@ -224,6 +224,7 @@ footer span{float:right;color:#9AA5AA}
     <button class="btn" onclick="saveFile()">Save file</button>
     <button class="btn" onclick="shareLink()">Share link</button>
     <button class="btn" id="collabbtn" onclick="toggleCollab()">Collaborate</button>
+    <button class="btn" id="googlesyncbtn" onclick="signInWithGoogle()">Sign in with Google</button>
     <button class="btn" id="syncbtn" onclick="signInToSync()">Sign in to sync</button>
     <button class="btn" id="fitbtn" onclick="toggleFit()" style="display:none">Zoom 100%</button>
     <button class="btn" onclick="doPrint()">Print / PDF</button>
@@ -1423,7 +1424,7 @@ const FB_CONFIG = {
 };
 const FB_SDK = "https://www.gstatic.com/firebasejs/12.17.0/";
 const collab = { on: false, room: null, ref: null, presRef: null, meRef: null, me: null, applying: false, timer: null, people: 1 };
-const sync = { on: false, uid: null, email: null, ref: null, applying: false, timer: null, primed: false };
+const sync = { on: false, uid: null, email: null, method: null, ref: null, applying: false, timer: null, primed: false };
 
 function fbReady(){ return !!(FB_CONFIG.apiKey && FB_CONFIG.databaseURL); }
 function loadScript(url){
@@ -1528,20 +1529,27 @@ function toggleCollab(){
 const SYNC_EMAIL_KEY = "aimqip.syncEmail";
 function renderSync(){
   const b = $("syncbtn");
+  const g = $("googlesyncbtn");
   const bar = $("syncbar");
   if (sync.on){
     b.textContent = "Synced \u2014 " + sync.email + "  \u00D7";
     b.className = "btn synced";
     b.title = "Click to sign out. Your projects stay on this device \u2014 signing out just stops the cloud copy.";
+    g.style.display = "none";
     bar.className = "on";
+    const note = sync.method === "google"
+      ? "Signed in with your Google account \u2014 no email is stored or sent by this tool for Google sign-in."
+      : "This tool can\u2019t guarantee the security of stored addresses \u2014 if you haven\u2019t already, consider signing out and back in with a burner or disposable email instead of your main one.";
     bar.innerHTML = "<b>Synced</b>" +
       "<span>" + sync.email + "</span>" +
-      "<span style=\"color:var(--grey)\">This tool can\u2019t guarantee the security of stored addresses \u2014 if you haven\u2019t already, consider signing out and back in with a burner or disposable email instead of your main one.</span>" +
+      "<span style=\"color:var(--grey)\">" + note + "</span>" +
       "<button onclick=\"signInToSync()\">Sign out</button>";
   } else {
     b.textContent = "Sign in to sync";
     b.className = "btn";
     b.title = "Make your named projects follow you to another device.";
+    g.style.display = "";
+    g.title = "Sign in with your Google account instead \u2014 no emailed link to wait for.";
     bar.className = "";
     bar.innerHTML = "";
   }
@@ -1578,6 +1586,7 @@ function pushCloudLibrary(immediate){
 }
 function attachSync(user){
   sync.on = true; sync.uid = user.uid; sync.email = user.email;
+  sync.method = (user.providerData && user.providerData[0] && user.providerData[0].providerId === "google.com") ? "google" : "email";
   sync.ref = firebase.database().ref("users/" + user.uid + "/library");
   try { localStorage.setItem("aimqip.synced", "1"); } catch (e) {}
   sync.ref.get().then(snap => {
@@ -1585,6 +1594,29 @@ function attachSync(user){
     mergeCloudLibrary(v && v.pages, v && v.cur);
   }).catch(() => showToast("Signed in, but couldn\u2019t reach your synced projects \u2014 check your connection", 4500));
   renderSync();
+}
+function signInWithGoogle(){
+  if (sync.on){ signOutOfSync(); return; }
+  if (!fbReady()){
+    alert("Cross-device sync isn\u2019t switched on for this copy of the tool yet.\n\n" +
+          "It needs the same free Firebase project as Collaborate, with the Google sign-in provider turned on (Authentication \u2192 Sign-in method). See COLLABORATION_SETUP.md.\n\n" +
+          "Until then, use \u201CSave file\u201D and \u201COpen\u2026\u201D to move projects between devices.");
+    return;
+  }
+  loadFirebase().then(() => {
+    const provider = new firebase.auth.GoogleAuthProvider();
+    return firebase.auth().signInWithPopup(provider);
+  }).then(result => {
+    attachSync(result.user);
+    showToast("Signed in as " + result.user.email + " \u2014 your saved projects have joined this device", 5500);
+  }).catch(err => {
+    if (!err || err.code === "auth/popup-closed-by-user" || err.code === "auth/cancelled-popup-request") return;
+    if (err.code === "auth/popup-blocked"){
+      alert("Your browser blocked the Google sign-in popup \u2014 allow popups for this page and try again.");
+    } else {
+      alert("Couldn\u2019t sign in with Google (" + (err.message || "check your connection") + ").");
+    }
+  });
 }
 function signInToSync(){
   if (sync.on){ signOutOfSync(); return; }
@@ -1614,7 +1646,7 @@ function signOutOfSync(){
   try { sync.ref.off(); } catch (e) {}
   try { firebase.auth().signOut(); } catch (e) {}
   try { localStorage.removeItem("aimqip.synced"); } catch (e) {}
-  sync.on = false; sync.uid = null; sync.email = null; sync.ref = null;
+  sync.on = false; sync.uid = null; sync.email = null; sync.method = null; sync.ref = null;
   renderSync();
   showToast("Signed out \u2014 these projects stay on this device; sign in again anytime to reconnect them", 5000);
 }
