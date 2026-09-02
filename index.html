@@ -1578,7 +1578,7 @@ function signInToSync(){
           "Until then, use \u201CSave file\u201D and \u201COpen\u2026\u201D to move projects between devices.");
     return;
   }
-  const entry = window.prompt("Your email address \u2014 we\u2019ll send a one-click sign-in link. No password, no account to set up.");
+  const entry = window.prompt("Your email address \u2014 we\u2019ll send a one-click sign-in link. No password, no account to set up.\n\nTip: this tool can\u2019t guarantee the security of stored addresses \u2014 consider using a burner or disposable email rather than your main one.");
   if (!entry || !entry.trim()) return;
   const clean = entry.trim();
   if (clean.indexOf("@") < 1){
