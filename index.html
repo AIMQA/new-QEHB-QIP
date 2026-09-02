@@ -1408,7 +1408,9 @@ window.addEventListener("hashchange", () => {
      4. Build \u2192 Authentication \u2192 Get started \u2192 Sign-in method \u2192 enable the
         \u201CGoogle\u201D provider. (Only needed for cross-device sync, not for rooms.)
      5. Project settings \u2192 Your apps \u2192 Web app (</>) \u2192 register \u2192 copy the
-        apiKey and databaseURL out of the config it shows you.
+        apiKey, authDomain and databaseURL out of the config it shows you.
+        (authDomain is required for \u201cSign in with Google\u201d specifically \u2014
+        without it Firebase throws auth/auth-domain-config-required.)
      6. Paste them below, save, push to GitHub. That\u2019s it.
    Leave FB_CONFIG blank and everything else in the tool still works \u2014 the
    Collaborate and \u201CSign in with Google\u201D buttons simply explain they haven\u2019t
@@ -1418,6 +1420,7 @@ window.addEventListener("hashchange", () => {
    ========================================================================= */
 const FB_CONFIG = {
   apiKey: "AIzaSyCmhue-4pHOxLalW8zEy96dmEklhxLARQE",
+  authDomain: "aim-qip-qehb.firebaseapp.com",
   databaseURL: "https://aim-qip-qehb-default-rtdb.europe-west1.firebasedatabase.app"
 };
 const FB_SDK = "https://www.gstatic.com/firebasejs/12.17.0/";
