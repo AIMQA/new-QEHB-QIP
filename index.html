@@ -1306,6 +1306,7 @@ const HOWTO = [
   ["+ New page", "Start another project, or a fresh page for cycle 2, without losing this one."],
   ["It saves itself", "Everything autosaves in this browser as you go \u2014 close the tab and it\u2019s still here next time."],
   ["Save file / Open\u2026 / Sign in with Google", "Download a portable copy, open one elsewhere, or sign in with Google to have your named projects follow you automatically."],
+  ["Your email address stays yours", "Signing in with Google only gives your projects a private space in the cloud. This tool never sees your password, never writes your email address to this device or its database, and never sends you email. Your diagrams are saved under an anonymous account ID, not your address. Sign out at any time \u2014 your work stays on this device. (Google\u2019s Firebase service holds the sign-in record itself, as with any \u201CSign in with Google\u201D button; this tool keeps no copy.)"],
   ["Share link / Collaborate", "Send a snapshot to a colleague, or start a live room and edit the same page together in real time."],
   ["Download PNG / Print / PPTX", "PNG exports the current diagram as an image, Print makes a one-page PDF, and Download PPTX builds a full slide deck \u2014 one slide per diagram, for every page in the project."],
   ["Undo / Redo, top left", "Every change is one click to reverse, including Load example and Clear."]
@@ -1854,7 +1855,11 @@ if (opened){
   showToast(hadLocal ? "Shared pages added \u2014 your own saved projects are untouched" : "Opened from a shared link \u2014 edit freely, then Share link to send it back", 6000);
   bootToasted = true;
 }
-if (q.get("example")) loadExample();
+if (q.get("example")){
+  // the deck links here repeatedly \u2014 reuse an existing example page rather than stacking up duplicates
+  const ex = state.pages.findIndex(p => /^Example \u2014 VTE/.test(p.name || ""));
+  if (ex >= 0){ state.cur = ex; state.sel = null; render(); } else loadExample();
+}
 const lsGet = k => { try { return localStorage.getItem(k); } catch (e) { return null; } };
 if (fbReady() && lsGet("aimqip.redirectPending")){
   completeRedirectSignIn();
