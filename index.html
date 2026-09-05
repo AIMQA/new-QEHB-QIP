@@ -8,7 +8,8 @@
 <style>
 :root{
   --dark:#003087; --teal:#005EB8; --sea:#0072CE; --aqua:#D9E7F5; --bg:#F0F4F5;
-  --navy:#231F20; --line:#D8DEE1; --grey:#425563; --mint:#41B6E6; --ph:#768692;
+  --navy:#231F20; --line:#D8DEE1;
+  --dline:#000; --dfill:#ECECEC; --dmute:#555; --grey:#425563; --mint:#41B6E6; --ph:#768692;
 }
 *{box-sizing:border-box}
 body{margin:0;font-family:Calibri,'Segoe UI',Arial,sans-serif;color:var(--navy);background:var(--bg)}
@@ -498,6 +499,7 @@ function pPos(i){
   if (row % 2 === 1) col = COLS - 1 - col;
   return { x: PAD + col * (PW + GX), y: PAD + row * (PH + GY), row: row, col: col };
 }
+const BRANCH_DASH = ["5,3", "2,3", "9,3,2,3", "10,4", "1,4", "12,3,3,3,3,3"];
 function renderProcess(board, svg, nodes){
   const list = state.process;
   const rows = Math.max(1, Math.ceil(list.length / COLS));
@@ -533,18 +535,12 @@ function renderProcess(board, svg, nodes){
     }
   }
   // branch spurs \u2014 one row per branching decision, below the main grid
-  if (branches.length){
-    const bh = document.createElement("div"); bh.className = "branchhead";
-    bh.style.cssText = "left:" + PAD + "px;top:" + (mainH - GY / 2 + 2) + "px";
-    bh.textContent = "\u201CNO\u201D PATHS";
-    nodes.appendChild(bh);
-  }
   branches.forEach((br, bi) => {
     const rowY = mainH + 24 + bi * (BROWH + BGAP);
     const labY = rowY, boxY = rowY + 36;
     const lw = document.createElement("div"); lw.className = "branchlabel";
     lw.style.cssText = "left:" + PAD + "px;top:" + labY + "px;width:" + (PW * 3) + "px";
-    const tag = document.createElement("b"); tag.textContent = "IF NO \u2014";
+    const tag = document.createElement("b"); tag.textContent = "OTHERWISE \u2014";
     lw.appendChild(tag);
     lw.appendChild(editable("branchnote", br.decision.no, "click to note what happens\u2026", v => { br.decision.no = v; }));
     nodes.appendChild(lw);
@@ -564,15 +560,16 @@ function renderProcess(board, svg, nodes){
     // route via a right-hand gutter so the dashed line never crosses main-grid boxes, whatever row the decision sits in
     const dPos = pPos(br.idx);
     const cx = dPos.x + PW / 2, startX = PAD + PW / 2;
-    const gutterX = PAD + COLS * (PW + GX) - GX + 40;
-    const dropY = dPos.y + PH + 14, runY = boxY - 12;
+    // each branch gets its own lane (offset by bi) so multiple "otherwise" routes never overlap one another
+    const gutterX = PAD + COLS * (PW + GX) - GX + 40 + bi * 18;
+    const dropY = dPos.y + PH + 14 + bi * 10, runY = boxY - 12;
     d += '<path d="M' + cx + ',' + (dPos.y + PH) +
       ' L' + cx + ',' + dropY +
       ' L' + gutterX + ',' + dropY +
       ' L' + gutterX + ',' + runY +
       ' L' + startX + ',' + runY +
       ' L' + startX + ',' + (boxY - 3) +
-      '" fill="none" stroke="#005EB8" stroke-width="2" stroke-dasharray="5,3" marker-end="url(#arr)"/>';
+      '" fill="none" stroke="#000000" stroke-width="2" stroke-dasharray="' + BRANCH_DASH[bi % BRANCH_DASH.length] + '" marker-end="url(#arr)"/>';
   });
   svg.innerHTML = markerDefs() + d;
   $("who").style.display = "none";
