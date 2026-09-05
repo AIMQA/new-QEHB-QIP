@@ -323,7 +323,7 @@ footer span{float:right;color:var(--grey)}
     <p><button class="tbtn" onclick="closeA11y()">Close</button></p>
   </div>
 </dialog>
-<footer>AIM Quality Improvement Team&nbsp; | &nbsp;Queen Elizabeth Hospital Birmingham&nbsp; | &nbsp;<button class="linkbtn" onclick="openA11y()">Accessibility statement (WCAG 2.2 AA)</button> <span>Stages 1–2 of the QIP Roadmap — export the PNG into your slides or workbook</span></footer>
+<footer>AIM Quality Improvement Team&nbsp; | &nbsp;Queen Elizabeth Hospital Birmingham&nbsp; | &nbsp;<button class="linkbtn" onclick="openA11y()">Accessibility statement (WCAG 2.2 AA)</button></footer>
 
 <script>
 "use strict";
@@ -1283,12 +1283,12 @@ function render(){
 function appendGuidanceToggle(bar){
   const t = document.createElement("button"); t.id = "guidebtn"; t.className = "tbtn" + (state.help ? " red" : "");
   t.textContent = state.help ? "Hide guidance" : "Show guidance";
-  t.onclick = () => { state.help = !state.help; render(); };
+  t.onclick = () => { state.help = !state.help; if (state.help) setTourDismissed(false); render(); };
   bar.appendChild(t);
 }
 const HOWTO = [
-  ["Five tabs, left to right", "Stage 1: Pitch (five sentences) \u00B7 2\u00D72 Ideas (what to test first). Stage 2: Process Map (what happens) \u2192 5 Whys (why) \u2192 Driver Diagram (what to change)."],
-  ["Pages = projects", "Each page is a separate project with its own diagrams. Tap \u270E on the page tab to name it \u2014 naming this one also dismisses this guide."],
+  ["Six tabs, left to right", "Stage 1: Pitch (five sentences) \u00B7 2\u00D72 Ideas (what to test first). Stage 2: Process Map (what happens) \u2192 5 Whys (why) \u2192 Fishbone (every likely cause) \u2192 Driver Diagram (what to change)."],
+  ["Pages = projects", "Each page is a separate project with its own diagrams. Tap \u270E on the page tab to name it."],
   ["+ New page", "Start another project, or a fresh page for cycle 2, without losing this one."],
   ["It saves itself", "Everything autosaves in this browser as you go \u2014 close the tab and it\u2019s still here next time."],
   ["Save file / Open\u2026 / Sign in with Google", "Download a portable copy, open one elsewhere, or sign in with Google to have your named projects follow you automatically."],
@@ -1296,16 +1296,22 @@ const HOWTO = [
   ["Download PNG / Print / PPTX", "PNG exports the current diagram as an image, Print makes a one-page PDF, and Download PPTX builds a full slide deck \u2014 one slide per diagram, for every page in the project."],
   ["Undo / Redo, top left", "Every change is one click to reverse, including Load example and Clear."]
 ];
+function tourDismissed(){ try { return !!localStorage.getItem("aimqip.tourDismissed"); } catch (e) { return false; } }
+function setTourDismissed(v){ try { if (v) localStorage.setItem("aimqip.tourDismissed", "1"); else localStorage.removeItem("aimqip.tourDismissed"); } catch (e) {} }
 function renderHowTo(){
+  // The tour stays until the reader dismisses it, whatever the page is called \u2014 and "Show guidance" brings it back.
   const el = $("howto");
   const pg = state.pages[state.cur];
-  if (!state.help || !pg || pg.name !== "Page 1"){ el.style.display = "none"; return; }
+  if (!state.help || !pg || tourDismissed()){ el.style.display = "none"; return; }
   el.style.display = "block";
+  const onPage1 = pg.name === "Page 1";
   el.innerHTML = '<div class="whoin"><div class="whohead">HOW TO USE THIS TOOL' +
-    '<a href="#" id="howtoRename">\u270E Name this page to dismiss \u2192</a></div>' +
-    '<div class="wholine">A quick tour \u2014 then make this page yours.</div>' +
+    '<span>' + (onPage1 ? '<a href="#" id="howtoRename">\u270E Name this page</a> \u00B7 ' : '') +
+    '<a href="#" id="howtoDismiss">Got it \u2014 hide this \u2192</a></span></div>' +
+    '<div class="wholine">A quick tour' + (onPage1 ? ' \u2014 then make this page yours.' : '.') + '</div>' +
     '<ul class="howlist">' + HOWTO.map(h => '<li><b>' + h[0] + '</b> \u2014 ' + h[1] + '</li>').join('') + '</ul></div>';
-  $("howtoRename").onclick = e => { e.preventDefault(); renamePage(state.cur); };
+  const rn = $("howtoRename"); if (rn) rn.onclick = e => { e.preventDefault(); setTourDismissed(true); renamePage(state.cur); };
+  $("howtoDismiss").onclick = e => { e.preventDefault(); setTourDismissed(true); render(); showToast("Tour hidden \u2014 \u201CShow guidance\u201D brings it back", 3500); };
 }
 if (state.fit === undefined) state.fit = true;
 if (state.help === undefined) state.help = true;
