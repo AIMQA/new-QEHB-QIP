@@ -3,14 +3,18 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>AIM QIP Diagram Tool — pitch, 2×2, process maps, 5 Whys & driver diagrams</title>
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#023D22">
+<script>(function(){try{var t=localStorage.getItem("aimqip.theme");if(!t)t=(window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches)?"dark":"light";document.documentElement.setAttribute("data-theme",t);}catch(e){}})();</script>
+<title>Sample Website QIP Diagram Tool — pitch, 2×2, process maps, 5 Whys & driver diagrams</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js" defer></script>
 <style>
 :root{
-  --dark:#003087; --teal:#005EB8; --sea:#0072CE; --aqua:#D9E7F5; --bg:#F0F4F5;
-  --navy:#231F20; --line:#D8DEE1;
-  --dline:#000; --dfill:#ECECEC; --dmute:#555; --grey:#425563; --mint:#41B6E6; --ph:#5B6B78; --edge:#7F8C97;
+  --dark:#023d22; --teal:#036E3A; --sea:#098040; --aqua:#DCEFE3; --bg:#F1F6F2;
+  --navy:#1B1B1B; --line:#D4E0D8;
+  --dline:#000; --dfill:#ECECEC; --dmute:#555;
+  --paper:#FFFFFF; --board:#FFFFFF; --ink-strong:var(--dark); --grey:#4a5a52; --mint:#7DD08F; --ph:#627267; --edge:#78877F;
 }
 *{box-sizing:border-box}
 body{margin:0;font-family:Calibri,'Segoe UI',Arial,sans-serif;color:var(--navy);background:var(--bg)}
@@ -25,27 +29,27 @@ header{background:var(--dark);color:#fff;padding:14px 22px;display:flex;flex-wra
 .spacer{flex:1}
 .actions{display:flex;gap:8px;flex-wrap:wrap}
 .btn{border:1px solid var(--sea);background:transparent;color:#fff;padding:7px 12px;border-radius:8px;cursor:pointer;font:inherit;font-size:12.5px}
-.btn:hover{background:#0072CE}
+.btn:hover{background:#098040}
 .btn:disabled{opacity:.35;cursor:default}
 .btn:disabled:hover{background:transparent}
 .btn.primary{background:var(--sea);border-color:var(--sea);font-weight:bold}
-.hint{padding:9px 22px;font-size:12.5px;color:var(--grey);background:#fff;border-bottom:1px solid var(--line)}
+.hint{padding:9px 22px;font-size:12.5px;color:var(--grey);background:var(--paper);border-bottom:1px solid var(--line)}
 .hint b{color:var(--teal)}
 .wprob{background:var(--dark);color:#fff;border-radius:10px;padding:12px 16px;font-weight:bold;font-size:15px;position:relative}
-.wcard{background:#fff;border:1px solid var(--teal);border-radius:10px;padding:11px 16px;font-size:15px;color:var(--navy);position:relative;display:flex;align-items:center;gap:12px}
-.wcard .wlab{font-size:11px;font-weight:bold;letter-spacing:1.1px;color:var(--dark);white-space:nowrap}
-.wroot{background:var(--aqua);border:1px solid var(--teal);border-radius:10px;padding:11px 16px;font-size:15px;font-weight:bold;color:var(--dark);display:flex;align-items:center;gap:12px}
+.wcard{background:var(--paper);border:1px solid var(--teal);border-radius:10px;padding:11px 16px;font-size:15px;color:var(--navy);position:relative;display:flex;align-items:center;gap:12px}
+.wcard .wlab{font-size:11px;font-weight:bold;letter-spacing:1.1px;color:var(--ink-strong);white-space:nowrap}
+.wroot{background:var(--aqua);border:1px solid var(--teal);border-radius:10px;padding:11px 16px;font-size:15px;font-weight:bold;color:var(--ink-strong);display:flex;align-items:center;gap:12px}
 .warrow{text-align:center;font-size:11px;font-style:italic;font-weight:bold;color:var(--teal);padding:5px 0}
 .wcard .ntext,.wprob .ntext{text-align:left}
-.pcard{position:absolute;display:flex;align-items:stretch;gap:0;border:1px solid var(--teal);border-radius:10px;background:#fff;overflow:hidden}
+.pcard{position:absolute;display:flex;align-items:stretch;gap:0;border:1px solid var(--teal);border-radius:10px;background:var(--paper);overflow:hidden}
 .pcard .pnum{flex:0 0 42px;background:var(--dark);color:#fff;font-weight:bold;font-size:15px;display:flex;align-items:center;justify-content:center}
-.pcard .plab{flex:0 0 128px;background:var(--aqua);color:var(--dark);font-weight:bold;font-size:12px;display:flex;align-items:center;padding:0 12px}
+.pcard .plab{flex:0 0 128px;background:var(--aqua);color:var(--ink-strong);font-weight:bold;font-size:12px;display:flex;align-items:center;padding:0 12px}
 .pcard .ntext{flex:1;text-align:left;font-size:14px;justify-content:flex-start;padding:10px 14px}
 .gaxis{position:absolute;background:var(--grey)}
 .gtick{position:absolute;font-size:10px;font-weight:bold;letter-spacing:1.2px;color:var(--grey)}
 .gquad{position:absolute;font-size:10.5px;font-style:italic;color:var(--ph);pointer-events:none}
 .gquad.win{font-style:normal;font-weight:bold;color:var(--teal);background:var(--aqua);border-radius:12px;padding:3px 10px}
-.gchip{position:absolute;border:1.4px solid var(--teal);background:#fff;border-radius:10px;box-shadow:0 1px 3px rgba(0,0,0,.12);cursor:grab;touch-action:none}
+.gchip{position:absolute;border:1.4px solid var(--teal);background:var(--paper);border-radius:10px;box-shadow:0 1px 3px rgba(0,0,0,.12);cursor:grab;touch-action:none}
 .gchip.sel{box-shadow:0 0 0 2.5px var(--sea)}
 .gchip.drag{cursor:grabbing;box-shadow:0 6px 16px rgba(0,0,0,.22);z-index:20}
 .gchip .ntext{font-size:12.5px;text-align:center;padding:6px 9px}
@@ -55,23 +59,43 @@ header{background:var(--dark);color:#fff;padding:14px 22px;display:flex;flex-wra
 .skip:focus{left:0}
 
 .linkbtn{border:0;background:transparent;color:var(--teal);font:inherit;padding:0;cursor:pointer;text-decoration:underline}
-.linkbtn:hover{color:var(--dark)}
-dialog#a11y,dialog#howtoDlg{border:0;border-radius:12px;padding:0;max-width:720px;width:calc(100% - 32px);color:var(--navy);background:#fff}
+.linkbtn:hover{color:var(--ink-strong)}
+dialog#a11y,dialog#howtoDlg{border:0;border-radius:12px;padding:0;max-width:720px;width:calc(100% - 32px);color:var(--navy);background:var(--paper)}
 dialog#a11y::backdrop,dialog#howtoDlg::backdrop{background:rgba(0,0,0,.5)}
 .a11y-body{position:relative;padding:22px 28px 18px;font-size:14px;line-height:1.55;max-height:85vh;overflow:auto}
-.a11y-body h2{margin:0 40px 10px 0;font-size:20px;color:var(--dark)}
+.a11y-body h2{margin:0 40px 10px 0;font-size:20px;color:var(--ink-strong)}
 .a11y-body h3{margin:18px 0 6px;font-size:14.5px;color:var(--teal)}
 .a11y-body p,.a11y-body ul{margin:0 0 8px}
 .a11y-body li{margin:3px 0}
 .a11y-body a{color:var(--teal)}
-.a11y-close{position:absolute;top:12px;right:12px;width:32px;height:32px;border-radius:50%;border:1px solid var(--line);background:#fff;font-size:20px;line-height:30px;cursor:pointer;color:var(--navy)}
+.a11y-close{position:absolute;top:12px;right:12px;width:32px;height:32px;border-radius:50%;border:1px solid var(--line);background:var(--paper);font-size:20px;line-height:30px;cursor:pointer;color:var(--navy)}
 @media print{dialog#a11y,dialog#howtoDlg{display:none!important}}
+
+/* ---------- dark theme: set on <html data-theme="dark">; exports and print stay light ---------- */
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#0E1512; --board:#111A16; --paper:#17221C; --lt:#14201A;
+  --navy:#E7EEEA; --grey:#B4C2BA; --ph:#94A79C; --line:#2E3B34; --edge:#7A8C82;
+  --aqua:#173A2A; --teal:#5ED08F; --sea:#1B7A45; --ink-strong:#C9F0D6;
+}
+@media screen{:root[data-theme="dark"] #board:not(.mono) .node.decision .shape{background:transparent url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 84" preserveAspectRatio="none"><polygon points="75,2 148,42 75,82 2,42" fill="%23173A2A" stroke="%235ED08F" stroke-width="2.4"/></svg>') center/100% 100% no-repeat}
+:root[data-theme="dark"] #board:not(.mono) .node.terminator .shape{border:1px solid var(--sea)}
+:root[data-theme="dark"] .pchip.on,:root[data-theme="dark"] .nsib{color:#0B1520}
+:root[data-theme="dark"] #board:not(.mono) .gchip{box-shadow:none}}
+:root[data-theme="dark"] #syncbar{background:#2B2410;border-color:#6B5A1E;color:#F3E9C6}
+:root[data-theme="dark"] #syncbar b{color:#F2D27A}
+:root[data-theme="dark"] #syncbar button{border-color:#6B5A1E;color:#F3E9C6}
+:root[data-theme="dark"] #livebar{background:#12281B;border-color:#2F5A3C}
+:root[data-theme="dark"] .ndel{background:#6E7E8B}
+/* connectors are black on light paper; on a dark canvas they invert (the .mono/print rules still win for exports) */
+:root[data-theme="dark"] #board svg path,:root[data-theme="dark"] #board svg line{stroke:#DCE3EA}
+:root[data-theme="dark"] #board svg marker path{fill:#DCE3EA}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important;scroll-behavior:auto!important}}
 .fprob{position:absolute;display:flex;align-items:center;justify-content:center;background:var(--dark);border-radius:10px;box-sizing:border-box;padding:8px 10px}
 .fprob .ntext{color:#fff;font-weight:bold;font-size:13px;text-align:center}
 .fhead{position:absolute;display:flex;align-items:center;background:var(--aqua);border:1.4px solid var(--teal);border-radius:8px;box-sizing:border-box;padding:4px 7px}
-.fhead .ntext{flex:1;font-size:12px;font-weight:bold;color:var(--dark);text-align:left;padding:0 2px}
-.fcause{position:absolute;display:flex;align-items:center;background:#fff;border:1px solid var(--edge);border-radius:7px;box-sizing:border-box;padding:3px 7px}
+.fhead .ntext{flex:1;font-size:12px;font-weight:bold;color:var(--ink-strong);text-align:left;padding:0 2px}
+.fcause{position:absolute;display:flex;align-items:center;background:var(--paper);border:1px solid var(--edge);border-radius:7px;box-sizing:border-box;padding:3px 7px}
 .fcause .ntext{flex:1;font-size:11.5px;color:var(--navy);text-align:left;padding:0 2px}
 .fcause:hover .ndel,.fhead:hover .ndel,.fcause:focus-within .ndel,.fhead:focus-within .ndel{display:block}
 .fadd{position:absolute;border:1px dashed var(--teal);background:transparent;color:var(--teal);border-radius:7px;font-size:11px;font-weight:bold;cursor:pointer;box-sizing:border-box;padding:2px 0}
@@ -79,11 +103,11 @@ dialog#a11y::backdrop,dialog#howtoDlg::backdrop{background:rgba(0,0,0,.5)}
 .waddw{display:block;margin:10px auto 0;border:1px dashed var(--teal);background:transparent;color:var(--teal);padding:7px 16px;border-radius:18px;cursor:pointer;font:inherit;font-size:13px}
 #livebar{display:none;align-items:center;gap:12px;padding:7px 22px;background:#E6F3EA;border-bottom:1px solid #A8D5B5;font-size:12px;color:var(--navy);flex-wrap:wrap}
 #livebar.on{display:flex}
-#livebar .dot{width:9px;height:9px;border-radius:50%;background:#009639;animation:pulse 1.6s infinite}
+#livebar .dot{width:9px;height:9px;border-radius:50%;background:#0a8a46;animation:pulse 1.6s infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
 #livebar b{color:#00622A}
-#livebar .code{font-family:Consolas,monospace;font-weight:bold;letter-spacing:1px;background:#fff;border:1px solid #A8D5B5;border-radius:6px;padding:2px 8px}
-#livebar button{border:1px solid #A8D5B5;background:#fff;color:var(--navy);padding:4px 10px;border-radius:7px;cursor:pointer;font:inherit;font-size:11.5px}
+#livebar .code{font-family:Consolas,monospace;font-weight:bold;letter-spacing:1px;background:var(--paper);border:1px solid #A8D5B5;border-radius:6px;padding:2px 8px}
+#livebar button{border:1px solid #A8D5B5;background:var(--paper);color:var(--navy);padding:4px 10px;border-radius:7px;cursor:pointer;font:inherit;font-size:11.5px}
 #livebar button:hover{border-color:#00622A;color:#00622A}
 @media print{#livebar{display:none!important}}
 @media (max-width:760px){#livebar{padding:7px 12px;font-size:11.5px}}
@@ -93,12 +117,12 @@ dialog#a11y::backdrop,dialog#howtoDlg::backdrop{background:rgba(0,0,0,.5)}
 #syncbar{display:none;align-items:center;gap:12px;padding:7px 22px;background:#FFF4E0;border-bottom:1px solid #EAC373;font-size:12px;color:var(--navy);flex-wrap:wrap}
 #syncbar.on{display:flex}
 #syncbar b{color:#8A5A00}
-#syncbar button{border:1px solid #EAC373;background:#fff;color:var(--navy);padding:4px 10px;border-radius:7px;cursor:pointer;font:inherit;font-size:11.5px}
+#syncbar button{border:1px solid #EAC373;background:var(--paper);color:var(--navy);padding:4px 10px;border-radius:7px;cursor:pointer;font:inherit;font-size:11.5px}
 #syncbar button:hover{border-color:#8A5A00;color:#8A5A00}
 @media print{#syncbar{display:none!important}}
 #pagebar{padding:8px 22px 0;background:var(--bg);display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .plabel{font-size:10px;font-weight:bold;letter-spacing:1.2px;color:var(--grey)}
-.pchip{display:flex;align-items:center;gap:7px;border:1px solid var(--teal);background:#fff;color:var(--teal);padding:5px 8px 5px 13px;border-radius:16px;cursor:pointer;font-size:12px;font-weight:bold}
+.pchip{display:flex;align-items:center;gap:7px;border:1px solid var(--teal);background:var(--paper);color:var(--teal);padding:5px 8px 5px 13px;border-radius:16px;cursor:pointer;font-size:12px;font-weight:bold}
 .pchip.on{background:var(--teal);color:#fff}
 .pchip .pname{border:0;background:transparent;color:inherit;font:inherit;padding:0;cursor:pointer;display:inline-flex;align-items:center;min-height:24px}
 .pchip .pe{width:24px;height:24px;line-height:24px;text-align:center;border-radius:50%;font-size:11px;font-weight:normal;background:rgba(0,0,0,.10);display:none;border:0;padding:0;color:inherit;cursor:pointer;font-family:inherit}
@@ -109,30 +133,30 @@ dialog#a11y::backdrop,dialog#howtoDlg::backdrop{background:rgba(0,0,0,.5)}
 .pchip.on .px{background:rgba(255,255,255,.25)}
 .pchip .px:hover{background:#da291c;color:#fff}
 .paddbtn{border:1px dashed var(--teal);background:transparent;color:var(--teal);padding:5px 12px;border-radius:16px;cursor:pointer;font:inherit;font-size:12px}
-#nodebar{padding:8px 22px;background:#fff;border-bottom:1px solid var(--line);display:flex;gap:8px;align-items:center;flex-wrap:wrap;min-height:44px}
+#nodebar{padding:8px 22px;background:var(--paper);border-bottom:1px solid var(--line);display:flex;gap:8px;align-items:center;flex-wrap:wrap;min-height:44px}
 #nodebar .lbl{font-size:11px;letter-spacing:1.2px;font-weight:bold;color:var(--teal)}
 .seg{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
-.seg button{border:0;background:#fff;padding:6px 11px;font:inherit;font-size:12px;cursor:pointer;color:var(--navy)}
+.seg button{border:0;background:var(--paper);padding:6px 11px;font:inherit;font-size:12px;cursor:pointer;color:var(--navy)}
 .seg button.on{background:var(--teal);color:#fff;font-weight:bold}
-.tbtn{border:1px solid var(--line);background:#fff;color:var(--navy);padding:6px 11px;border-radius:8px;cursor:pointer;font:inherit;font-size:12px}
+.tbtn{border:1px solid var(--line);background:var(--paper);color:var(--navy);padding:6px 11px;border-radius:8px;cursor:pointer;font:inherit;font-size:12px}
 .tbtn:hover{border-color:var(--teal);color:var(--teal)}
 .tbtn.danger:hover{border-color:#da291c;color:#da291c}
 .tbtn.red{background:#da291c;border-color:#da291c;color:#fff;font-weight:bold}
-.btn.synced{background:#009639;border-color:#009639;color:#fff;font-weight:bold}
-.btn.synced:hover{background:#00762c;border-color:#00762c}
+.btn.synced{background:#0a8a46;border-color:#0a8a46;color:#fff;font-weight:bold}
+.btn.synced:hover{background:#02582f;border-color:#02582f}
 .tbtn.red:hover{background:#b81f14;border-color:#b81f14;color:#fff}
 #wrap{padding:18px 22px;overflow:auto}
-#board{position:relative;width:1120px;background:#fff;border:1px solid var(--line);border-radius:10px;margin:0 auto}
+#board{position:relative;width:1120px;color:var(--navy);background:var(--board);border:1px solid var(--line);border-radius:10px;margin:0 auto}
 #lines{position:absolute;inset:0;pointer-events:none}
 .colhead{position:absolute;top:10px;font-size:11px;font-weight:bold;letter-spacing:1.4px;color:var(--teal)}
 .node{position:absolute;font-size:13px;line-height:1.3}
 .ntext{position:relative;width:100%;height:100%;display:flex;align-items:center;align-items:safe center;justify-content:center;text-align:center;padding:6px 9px;overflow:auto}
 .ntext:empty:before{content:attr(data-ph);color:var(--grey);font-style:italic}
 .node.sel .shape, .dnode.sel{box-shadow:0 0 0 2.5px var(--sea)}
-.shape{position:absolute;inset:0;border-radius:8px;background:#fff;border:1.6px solid var(--teal)}
+.shape{position:absolute;inset:0;border-radius:8px;background:var(--paper);border:1.6px solid var(--teal)}
 .node.terminator .shape{border-radius:44px;background:var(--dark);border-color:var(--dark)}
 .node.terminator .ntext{color:#fff;font-weight:bold}
-.node.decision .shape{border:0;background:transparent url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 84" preserveAspectRatio="none"><polygon points="75,2 148,42 75,82 2,42" fill="%23D9E7F5" stroke="%23005EB8" stroke-width="2.4"/></svg>') center/100% 100% no-repeat}
+.node.decision .shape{border:0;background:transparent url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 84" preserveAspectRatio="none"><polygon points="75,2 148,42 75,82 2,42" fill="%23DCEFE3" stroke="%23036E3A" stroke-width="2.4"/></svg>') center/100% 100% no-repeat}
 .node.decision .ntext{padding:10px 22px;font-size:11.5px}
 .node.wait .shape{border-style:dashed;background:var(--bg)}
 .node.wait .ntext{font-style:italic}
@@ -148,8 +172,8 @@ dialog#a11y::backdrop,dialog#howtoDlg::backdrop{background:rgba(0,0,0,.5)}
 .dnode.aim{background:var(--dark);border-color:var(--dark)}
 .dnode.aim .ntext{color:#fff;font-weight:bold}
 .dnode.primary{background:var(--aqua);border-color:var(--teal)}
-.dnode.primary .ntext{font-weight:bold;color:var(--dark)}
-.dnode.secondary{background:#fff;border-color:var(--teal)}
+.dnode.primary .ntext{font-weight:bold;color:var(--ink-strong)}
+.dnode.secondary{background:var(--paper);border-color:var(--teal)}
 .dnode.idea{background:var(--bg)}
 .nadd,.ndel{position:absolute;width:24px;height:24px;border-radius:50%;border:0;color:#fff;font-size:14px;line-height:24px;text-align:center;cursor:pointer;padding:0;display:none}
 .nadd{background:var(--sea);right:-12px;top:calc(50% - 12px)}
@@ -165,11 +189,11 @@ dialog#a11y::backdrop,dialog#howtoDlg::backdrop{background:rgba(0,0,0,.5)}
 .dcard .exm{display:block;color:var(--grey);margin-top:3px}
 .dcard .smartlbl{display:block;color:var(--teal);font-size:8.5px;font-weight:bold;letter-spacing:1.1px;margin-top:5px}
 .dcard .smartline{display:block;color:var(--navy);font-size:9.3px;margin-top:1.5px}
-.dcard .smartline b{display:inline;color:var(--dark);font-size:inherit;margin:0}
+.dcard .smartline b{display:inline;color:var(--ink-strong);font-size:inherit;margin:0}
 .dwarn{margin-top:8px;background:var(--aqua);border-radius:8px;padding:7px 10px;font-size:10.5px;color:var(--navy)}
 .dwarn b{color:var(--teal)}
 #who{display:none;padding:10px 22px 0}
-.whoin{max-width:1120px;margin:0 auto;background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px 14px}
+.whoin{max-width:1120px;margin:0 auto;background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:10px 14px}
 .whohead{font-size:10px;font-weight:bold;letter-spacing:1.6px;color:var(--teal)}
 .whohead a{color:var(--grey);font-weight:normal;letter-spacing:0;float:right;font-size:10.5px}
 .wholine{font-size:11px;color:var(--navy);margin:4px 0 8px}
@@ -222,6 +246,7 @@ footer span{float:right;color:var(--grey)}
 
 /* ---------- grey/white diagram output (on-screen editing stays in colour) ---------- */
 #board.mono{
+  --paper:#FFFFFF; --board:#FFFFFF; --ink-strong:#222222; --lt:#F4F4F4;
   --dark:#4A4A4A; --teal:#666666; --sea:#7A7A7A; --aqua:#ECECEC; --bg:#F4F4F4;
   --navy:#222222; --line:#CCCCCC; --edge:#777777; --grey:#666666; --ph:#8A8A8A;
 }
@@ -229,6 +254,7 @@ footer span{float:right;color:var(--grey)}
 #board.mono svg marker path{fill:#000 !important}
 #board.mono .node.decision .shape{background:transparent url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 84" preserveAspectRatio="none"><polygon points="75,2 148,42 75,82 2,42" fill="%23ECECEC" stroke="%23555555" stroke-width="2.4"/></svg>') center/100% 100% no-repeat !important}
 @media print{
+  :root,:root[data-theme="dark"]{color-scheme:light;--paper:#FFFFFF;--board:#FFFFFF;--bg:#FFFFFF;--lt:#FFFFFF;--navy:#222222;--grey:#555555;--line:#CCCCCC;--edge:#777777;--ink-strong:#222222}
   #board{
     --dark:#4A4A4A; --teal:#666666; --sea:#7A7A7A; --aqua:#ECECEC; --bg:#F4F4F4;
     --navy:#222222; --line:#CCCCCC; --edge:#777777; --grey:#666666; --ph:#8A8A8A;
@@ -243,7 +269,7 @@ footer span{float:right;color:var(--grey)}
 <a href="#board" class="skip">Skip to diagram</a>
 <header>
   <div class="brand">
-    <div class="eyebrow">ACUTE INTERNAL MEDICINE (AIM) QUALITY IMPROVEMENT TEAM</div>
+    <div class="eyebrow">SAMPLE WEBSITE &middot; QUALITY IMPROVEMENT</div>
     <h1>QIP Diagram Tool</h1>
   </div>
   <div class="tabs" role="navigation" aria-label="Diagram type and help">
@@ -266,6 +292,7 @@ footer span{float:right;color:var(--grey)}
     <button class="btn" onclick="shareLink()">Share link</button>
     <button class="btn" id="collabbtn" onclick="toggleCollab()">Collaborate</button>
     <button class="btn" id="syncbtn" onclick="signInWithGoogle()">Sign in with Google</button>
+    <button class="btn" id="themebtn" onclick="toggleTheme()" aria-pressed="false">☾ Dark mode</button>
     <button class="btn" id="fitbtn" onclick="toggleFit()" style="display:none">Zoom 100%</button>
     <button class="btn" onclick="doPrint()">Print / PDF</button>
     <button class="btn primary" id="pptxbtn" onclick="exportPPTX()">Download PPTX</button>
@@ -301,13 +328,14 @@ footer span{float:right;color:var(--grey)}
   <div class="a11y-body">
     <button class="a11y-close" onclick="closeA11y()" aria-label="Close accessibility statement">&times;</button>
     <h2 id="a11yTitle">Accessibility statement for the QIP Diagram Tool</h2>
-    <p>This website is run by the Acute Internal Medicine (AIM) Quality Improvement Team, Queen Elizabeth Hospital Birmingham. We want as many people as possible to be able to use it. For example, you should be able to:</p>
+    <p>This website is run by the Sample Website quality improvement team. We want as many people as possible to be able to use it. For example, you should be able to:</p>
     <ul>
       <li>use the whole tool with a keyboard alone</li>
       <li>zoom in up to 400% without the controls disappearing off the screen</li>
       <li>navigate it using a screen reader &mdash; every box has a name, and diagrams read left to right, top to bottom</li>
       <li>change colours, contrast levels and fonts using your browser or device settings</li>
       <li>turn off animation using your device&rsquo;s reduce-motion setting</li>
+      <li>switch between light and dark mode with the button in the header &mdash; it follows your device setting until you choose, and exports and printing always come out light</li>
     </ul>
     <h3>Keyboard shortcuts</h3>
     <ul>
@@ -324,18 +352,18 @@ footer span{float:right;color:var(--grey)}
       <li><b>The Google sign-in window</b> (used only for optional cross-device sync) is provided by Google and is outside our control.</li>
     </ul>
     <h3>Feedback and contact information</h3>
-    <p>If you find a problem that is not listed here, or think we are not meeting accessibility requirements, contact the AIM QI team at <a href="mailto:aimqip4@gmail.com">aimqip4@gmail.com</a>. We aim to respond within 10 working days.</p>
+    <p>If you find a problem that is not listed here, or think we are not meeting accessibility requirements, contact the Sample Website QI team at <a href="mailto:aimqip4@gmail.com">aimqip4@gmail.com</a>. We aim to respond within 10 working days.</p>
     <h3>Enforcement procedure</h3>
     <p>The Equality and Human Rights Commission (EHRC) is responsible for enforcing the Public Sector Bodies (Websites and Mobile Applications) (No. 2) Accessibility Regulations 2018 (the &ldquo;accessibility regulations&rdquo;). If you&rsquo;re not happy with how we respond to your complaint, <a href="https://www.equalityadvisoryservice.com/" target="_blank" rel="noopener">contact the Equality Advisory and Support Service (EASS)</a>.</p>
     <h3>Technical information about this website&rsquo;s accessibility</h3>
-    <p>The Acute Internal Medicine (AIM) Quality Improvement Team, Queen Elizabeth Hospital Birmingham is committed to making its website accessible, in accordance with the Public Sector Bodies (Websites and Mobile Applications) (No. 2) Accessibility Regulations 2018.</p>
+    <p>The Sample Website quality improvement team is committed to making its website accessible, in accordance with the Public Sector Bodies (Websites and Mobile Applications) (No. 2) Accessibility Regulations 2018.</p>
     <h3>Preparation of this accessibility statement</h3>
     <p>This statement was prepared on 5 September 2026. It was last reviewed on 5 September 2026.</p>
-    <p>This website was last tested on 5 September 2026. The test was carried out by the AIM QI team using automated testing (axe-core 4.10 against the WCAG 2.2 AA rule set) on every diagram type, together with manual keyboard-only testing, colour-contrast measurement, target-size and reflow checks, and a text-spacing override test. It has not yet been tested with assistive-technology users; if you use a screen reader or other assistive technology, we would particularly welcome your feedback.</p>
+    <p>This website was last tested on 5 September 2026. The test was carried out by the Sample Website QI team using automated testing (axe-core 4.10 against the WCAG 2.2 AA rule set) on every diagram type, together with manual keyboard-only testing, colour-contrast measurement, target-size and reflow checks, and a text-spacing override test. It has not yet been tested with assistive-technology users; if you use a screen reader or other assistive technology, we would particularly welcome your feedback.</p>
     <p><button class="tbtn" onclick="closeA11y()">Close</button></p>
   </div>
 </dialog>
-<footer>AIM Quality Improvement Team&nbsp; | &nbsp;Queen Elizabeth Hospital Birmingham&nbsp; | &nbsp;<button class="linkbtn" onclick="openA11y()">Accessibility statement (WCAG 2.2 AA)</button></footer>
+<footer>Sample Website&nbsp; | &nbsp;Quality Improvement&nbsp; | &nbsp;<button class="linkbtn" onclick="openA11y()">Accessibility statement (WCAG 2.2 AA)</button></footer>
 
 <script>
 "use strict";
@@ -1309,6 +1337,7 @@ const HOWTO = [
   ["Your email address stays yours", "Signing in with Google only gives your projects a private space in the cloud. This tool never sees your password, never writes your email address to this device or its database, and never sends you email. Your diagrams are saved under an anonymous account ID, not your address. Sign out at any time \u2014 your work stays on this device. (Google\u2019s Firebase service holds the sign-in record itself, as with any \u201CSign in with Google\u201D button; this tool keeps no copy.)"],
   ["Share link / Collaborate", "Send a snapshot to a colleague, or start a live room and edit the same page together in real time."],
   ["Download PNG / Print / PPTX", "PNG exports the current diagram as an image, Print makes a one-page PDF, and Download PPTX builds a full slide deck \u2014 one slide per diagram, for every page in the project."],
+  ["Dark mode", "The \u263E button in the header. It follows your device setting until you choose; whatever you pick, Download PNG, PPTX and Print always produce the light version."],
   ["Undo / Redo, top left", "Every change is one click to reverse, including Load example and Clear."]
 ];
 if (state.fit === undefined) state.fit = true;
@@ -1427,6 +1456,27 @@ function exportPNG(){
 }
 
 
+/* ---------- light / dark theme ---------- */
+function applyTheme(t){
+  document.documentElement.setAttribute("data-theme", t);
+  const b = $("themebtn");
+  if (b){ b.textContent = t === "dark" ? "\u2600 Light mode" : "\u263E Dark mode"; b.setAttribute("aria-pressed", t === "dark" ? "true" : "false"); }
+}
+function toggleTheme(){
+  const next = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
+  try { localStorage.setItem("aimqip.theme", next); } catch (e) {}
+  applyTheme(next);
+  showToast(next === "dark" ? "Dark mode on \u2014 exports and printing stay light" : "Light mode on", 2500);
+}
+document.addEventListener("DOMContentLoaded", () => {
+  applyTheme(document.documentElement.getAttribute("data-theme") || "light");
+  if (window.matchMedia){
+    matchMedia("(prefers-color-scheme: dark)").addEventListener("change", e => {
+      let chosen = null; try { chosen = localStorage.getItem("aimqip.theme"); } catch (x) {}
+      if (!chosen) applyTheme(e.matches ? "dark" : "light");
+    });
+  }
+});
 /* ---------- "How to use" dialog: the generic tour, on demand from the lozenge ---------- */
 let howtoOpener = null;
 function openHowTo(){
@@ -1498,11 +1548,11 @@ async function exportPPTX(){
         const imgX = boxX + (boxW - imgW) / 2, imgY = boxY + (boxH - imgH) / 2;
         const slide = pptx.addSlide();
         slide.background = { color: "FFFFFF" };
-        slide.addShape("rect", { x: 0, y: 0, w: SLIDE_W, h: HEAD_H, fill: { color: "003087" }, line: { type: "none" } });
-        slide.addText(state.pages[pi].name.toUpperCase(), { x: MARGIN, y: 0.12, w: SLIDE_W - MARGIN * 2, h: 0.28, fontSize: 11, bold: true, color: "41B6E6", fontFace: "Calibri", charSpacing: 2 });
+        slide.addShape("rect", { x: 0, y: 0, w: SLIDE_W, h: HEAD_H, fill: { color: "023D22" }, line: { type: "none" } });
+        slide.addText(state.pages[pi].name.toUpperCase(), { x: MARGIN, y: 0.12, w: SLIDE_W - MARGIN * 2, h: 0.28, fontSize: 11, bold: true, color: "7DD08F", fontFace: "Calibri", charSpacing: 2 });
         slide.addText(MODE_LABEL[mode], { x: MARGIN, y: 0.38, w: SLIDE_W - MARGIN * 2, h: 0.44, fontSize: 22, bold: true, color: "FFFFFF", fontFace: "Calibri" });
         slide.addImage({ data: dataUrl, x: imgX, y: imgY, w: imgW, h: imgH });
-        slide.addText("AIM Quality Improvement Team  |  Queen Elizabeth Hospital Birmingham", { x: MARGIN, y: SLIDE_H - 0.3, w: SLIDE_W - MARGIN * 2, h: 0.25, fontSize: 9, color: "005EB8", fontFace: "Calibri" });
+        slide.addText("Sample Website  |  Quality Improvement", { x: MARGIN, y: SLIDE_H - 0.3, w: SLIDE_W - MARGIN * 2, h: 0.25, fontSize: 9, color: "036E3A", fontFace: "Calibri" });
       }
     }
     const fname = (state.pages.length > 1 ? "qip-projects" : (state.pages[0].name || "qip-project"))
