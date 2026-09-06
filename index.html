@@ -175,6 +175,9 @@ dialog#a11y::backdrop,dialog#howtoDlg::backdrop{background:rgba(0,0,0,.5)}
 .dnode.primary .ntext{font-weight:bold;color:var(--ink-strong)}
 .dnode.secondary{background:var(--paper);border-color:var(--teal)}
 .dnode.idea{background:var(--bg)}
+.dnode.mcard .ntext{padding:6px 10px 22px}
+.dnode .mfor{position:absolute;left:10px;right:10px;bottom:4px;font-size:10.5px;font-style:italic;color:var(--grey);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dnode .mfor:empty:before{content:attr(data-ph);color:var(--ph)}
 .nadd,.ndel{position:absolute;width:24px;height:24px;border-radius:50%;border:0;color:#fff;font-size:14px;line-height:24px;text-align:center;cursor:pointer;padding:0;display:none}
 .nadd{background:var(--sea);right:-12px;top:calc(50% - 12px)}
 .nsib{position:absolute;width:24px;height:24px;border-radius:50%;border:0;color:#fff;font-size:14px;line-height:24px;text-align:center;cursor:pointer;padding:0;display:none;background:var(--teal);left:calc(50% - 10px);bottom:-10px}
@@ -279,6 +282,7 @@ footer span{float:right;color:var(--grey)}
     <button class="tab" id="tabW" onclick="setMode('whys')">5 Whys</button>
     <button class="tab" id="tabF" onclick="setMode('fish')">Fishbone</button>
     <button class="tab" id="tabD" onclick="setMode('driver')">Driver Diagram</button>
+    <button class="tab" id="tabM" onclick="setMode('measures')">Measures</button>
     <button class="tab help" id="tabHelp" onclick="openHowTo()" aria-haspopup="dialog">? How to use</button>
   </div>
   <div class="spacer"></div>
@@ -387,6 +391,7 @@ function blankDriver(){ return { aim: "", primaries: [
 function blankWhys(){ return { problem: "", whys: ["", "", ""] }; }
 const FISH_CATS = ["People", "Process", "Equipment", "Environment", "Policies", "Patient factors"];
 function blankFish(){ return { problem: "", bones: FISH_CATS.map(n => ({ id: nid(), name: n, causes: [] })) }; }
+function blankMeas(){ return { outcome: [], process: [], balancing: [] }; }
 const PITCH_LABELS = ["The problem", "The number", "The aim", "Why it matters", "The ask"];
 const PITCH_PH = [
   "What\u2019s going wrong, for which patients \u2014 as you\u2019ve seen it on the ward\u2026",
@@ -397,7 +402,7 @@ const PITCH_PH = [
 ];
 function blankPitch(){ return ["", "", "", "", ""]; }
 function blankGrid(){ return []; }
-state.pages = [{ id: nid(), name: "Page 1", process: blankProcess(), driver: blankDriver(), whys: blankWhys(), pitch: blankPitch(), grid: blankGrid(), fish: blankFish() }];
+state.pages = [{ id: nid(), name: "Page 1", process: blankProcess(), driver: blankDriver(), whys: blankWhys(), pitch: blankPitch(), grid: blankGrid(), fish: blankFish(), meas: blankMeas() }];
 state.cur = 0;
 Object.defineProperty(state, "process", { get(){ return state.pages[state.cur].process; }, set(v){ state.pages[state.cur].process = v; } });
 Object.defineProperty(state, "driver", { get(){ return state.pages[state.cur].driver; }, set(v){ state.pages[state.cur].driver = v; } });
@@ -416,6 +421,10 @@ Object.defineProperty(state, "grid", {
 Object.defineProperty(state, "fish", {
   get(){ const pg = state.pages[state.cur]; if (!pg.fish) pg.fish = blankFish(); return pg.fish; },
   set(v){ state.pages[state.cur].fish = v; }
+});
+Object.defineProperty(state, "meas", {
+  get(){ const pg = state.pages[state.cur]; if (!pg.meas) pg.meas = blankMeas(); return pg.meas; },
+  set(v){ state.pages[state.cur].meas = v; }
 });
 function uniqueName(base){
   const names = state.pages.map(p => p.name);
@@ -454,7 +463,7 @@ function addPage(){
   if (typed === null) return;                       // cancelled \u2014 don\u2019t create a stray page
   beginChange();
   const name = uniqueName((typed || "").trim() || fallback);
-  state.pages.push({ id: nid(), name: name, process: blankProcess(), driver: blankDriver(), whys: blankWhys(), pitch: blankPitch(), grid: blankGrid(), fish: blankFish() });
+  state.pages.push({ id: nid(), name: name, process: blankProcess(), driver: blankDriver(), whys: blankWhys(), pitch: blankPitch(), grid: blankGrid(), fish: blankFish(), meas: blankMeas() });
   state.cur = state.pages.length - 1; state.sel = null; render();
 }
 function delPage(i){
@@ -505,7 +514,7 @@ function loadLocal(){
     return true;
   } catch (e){ return false; }
 }
-function blankPageSet(){ state.pages = [{ id: nid(), name: "Page 1", process: blankProcess(), driver: blankDriver(), whys: blankWhys(), pitch: blankPitch(), grid: blankGrid(), fish: blankFish() }]; state.cur = 0; }
+function blankPageSet(){ state.pages = [{ id: nid(), name: "Page 1", process: blankProcess(), driver: blankDriver(), whys: blankWhys(), pitch: blankPitch(), grid: blankGrid(), fish: blankFish(), meas: blankMeas() }]; state.cur = 0; }
 function applySnap(s){ const j = JSON.parse(s); state.pages = j.pages; state.cur = Math.min(j.cur || 0, j.pages.length - 1); state.sel = null; render(); }
 function doUndo(){ if (!undoStack.length) return; redoStack.push(snap()); applySnap(undoStack.pop()); updateHistBtns(); }
 function doRedo(){ if (!redoStack.length) return; undoStack.push(snap()); applySnap(redoStack.pop()); updateHistBtns(); }
@@ -596,7 +605,12 @@ function loadExample(){
     { id: nid(), name: "Patient factors", causes: [
       { id: nid(), text: "Weight not recorded, so dose left blank" } ] }
   ]};
-  state.pages.push({ id: nid(), name: uniqueName("Example \u2014 VTE"), process: procEx, driver: drvEx, whys: whysEx, pitch: pitchEx, grid: gridEx, fish: fishEx });
+  state.pages.push({ id: nid(), name: uniqueName("Example \u2014 VTE"), process: procEx, driver: drvEx, whys: whysEx, pitch: pitchEx, grid: gridEx, fish: fishEx, meas: {
+    outcome: [ { id: nid(), text: "% of admissions with a VTE risk assessment within 14 h of the decision to admit — 20 charts a week", forWhat: "the aim" } ],
+    process: [ { id: nid(), text: "% of clerking proformas in use that carry the VTE prompt line", forWhat: "Prompt at the point of prescribing" },
+               { id: nid(), text: "% of new F1s shown the VTE box at induction", forWhat: "Doctors know it’s expected at clerking" } ],
+    balancing: [ { id: nid(), text: "Minutes to complete a clerking — sample of 5 a week", forWhat: "clerking time" } ]
+  } });
   state.cur = state.pages.length - 1;
   state.sel = null; render();
 }
@@ -608,6 +622,7 @@ function clearMode(){
   else if (state.mode === "pitch") state.pitch = blankPitch();
   else if (state.mode === "grid") state.grid = blankGrid();
   else if (state.mode === "fish") state.fish = blankFish();
+  else if (state.mode === "measures") state.meas = blankMeas();
   else state.driver = blankDriver();
   state.sel = null; render();
 }
@@ -1079,6 +1094,94 @@ function renderFish(board, svg, nodes){
   };
   bar.appendChild(send);
 }
+function renderMeasures(board, svg, nodes){
+  const m = state.meas;
+  const dv = state.driver;
+  const COLX = [40, 380, 720], COLW = 300, TOP = 44, GAP = 14, MH = 76, AIMW = 300;
+  const cols = [
+    ["outcome",   "OUTCOME",   "is the aim being met?",            "the aim, as a number"],
+    ["process",   "PROCESS",   "are the changes actually happening?", "what you changed, as a count"],
+    ["balancing", "BALANCING", "is anything getting worse?",       "what could get worse"]
+  ];
+  // the aim sits above the outcome column, mirrored from the driver diagram
+  const aimText = (dv.aim || "").trim();
+  const aimEl = document.createElement("div");
+  aimEl.className = "dnode aim";
+  aimEl.style.cssText = "left:" + COLX[0] + "px;top:" + TOP + "px;width:" + AIMW + "px;height:60px";
+  const aimT = document.createElement("div"); aimT.className = "ntext"; aimT.setAttribute("role", "note");
+  aimT.textContent = aimText || "Set your SMART aim on the Driver Diagram tab \u2014 it shows here";
+  if (!aimText) aimT.style.fontWeight = "normal";
+  aimEl.appendChild(aimT); nodes.appendChild(aimEl);
+  const lab = document.createElement("div"); lab.className = "colhead"; lab.style.left = COLX[0] + "px"; lab.textContent = "AIM"; nodes.appendChild(lab);
+
+  let d = "", maxBottom = TOP + 60;
+  const listTop = TOP + 60 + 52;
+  cols.forEach((c, ci) => {
+    const [key, title, q, hintTxt] = c;
+    const x = COLX[ci];
+    const h = document.createElement("div"); h.className = "colhead"; h.style.left = x + "px"; h.style.top = (TOP + 60 + 18) + "px";
+    h.innerHTML = title + " <span style=\"font-weight:normal;letter-spacing:0;text-transform:none;color:var(--grey)\">\u2014 " + q + "</span>";
+    nodes.appendChild(h);
+    let y = listTop;
+    m[key].forEach((it, i) => {
+      const el = document.createElement("div");
+      el.className = "dnode mcard " + (key === "balancing" ? "idea" : "secondary") + (state.sel === it.id ? " sel" : "");
+      el.style.cssText = "left:" + x + "px;top:" + y + "px;width:" + COLW + "px;height:" + MH + "px";
+      const ed = editable("ntext", it.text, hintTxt + "\u2026", v => { it.text = v; });
+      ed.setAttribute("aria-label", title.charAt(0) + title.slice(1).toLowerCase() + " measure " + (i + 1));
+      el.appendChild(ed);
+      const forLine = editable("mfor", it.forWhat, key === "balancing" ? "what might get worse\u2026" : (key === "outcome" ? "for the aim" : "for which driver?\u2026"), v => { it.forWhat = v; });
+      forLine.setAttribute("aria-label", (key === "balancing" ? "What this guards against" : "What this measures") + ", measure " + (i + 1));
+      el.appendChild(forLine);
+      const del = document.createElement("button"); del.className = "ndel"; del.textContent = "\u00D7"; del.title = "Delete this measure";
+      del.onclick = e => { e.stopPropagation(); beginChange(); m[key] = m[key].filter(z => z !== it); state.sel = null; render(); };
+      el.appendChild(del);
+      el.addEventListener("mousedown", e => { if (state.sel !== it.id && !e.target.isContentEditable){ e.preventDefault(); state.sel = it.id; render(); } });
+      el.addEventListener("focusin", () => { if (state.sel !== it.id){ state.sel = it.id; render(); } });
+      nodes.appendChild(el);
+      if (state.sel === it.id) focusEnd(ed);
+      // outcome measures hang off the aim
+      if (key === "outcome"){ const cx = COLX[0] + COLW - 26; const fromY = i === 0 ? TOP + 60 : y - GAP; d += arrow(cx, fromY, cx, y - 3); }
+      y += MH + GAP;
+    });
+    const add = document.createElement("button"); add.className = "fadd";
+    add.style.cssText = "left:" + x + "px;top:" + y + "px;width:" + COLW + "px;height:24px";
+    add.textContent = "+ " + title.toLowerCase() + " measure";
+    add.onclick = () => { beginChange(); const it = { id: nid(), text: "", forWhat: "" }; m[key].push(it); state.sel = it.id; render(); };
+    nodes.appendChild(add);
+    maxBottom = Math.max(maxBottom, y + 30);
+  });
+  board.style.height = (maxBottom + 20) + "px";
+  svg.innerHTML = markerDefs() + d;
+  $("who").style.display = "none"; $("drvhelp").style.display = "none";
+  $("hint").innerHTML = "<b>Measures:</b> three columns, one question each. <b>Outcome</b> is your aim written as a number. <b>Process</b> counts whether the change is actually happening \u2014 one per change idea you are testing. <b>Balancing</b> is the one people skip: what could get worse while you fix this? One of each is enough for a first project. Definitions, sampling and targets live in the Workbook\u2019s Data Plan tab \u2014 this is the picture, not the form.";
+  $("legend").innerHTML = "<span><i>Rule of thumb</i>&nbsp; outcome answers the aim \u00B7 process answers \u201Cdid we do it?\u201D \u00B7 balancing answers \u201Cat what cost?\u201D. Count something you can count every week.</span>";
+  const bar = $("nodebar"); bar.innerHTML = "";
+  const l = document.createElement("span"); l.className = "lbl"; l.textContent = "CLICK TO TYPE \u00B7 SECOND LINE = WHAT IT MEASURES \u00B7 \u00D7 = DELETE"; bar.appendChild(l);
+  const pull = document.createElement("button"); pull.className = "tbtn"; pull.textContent = "\u21D0 Pull drivers as process measures";
+  pull.title = "Add one process-measure card per secondary driver on your driver diagram";
+  pull.onclick = () => {
+    const secs = []; dv.primaries.forEach(p => p.secondaries.forEach(s => { if ((s.text || "").trim()) secs.push(s.text.trim()); }));
+    if (!secs.length){ alert("No secondary drivers written yet \u2014 add some on the Driver Diagram tab first."); return; }
+    const have = new Set(m.process.map(p => (p.forWhat || "").trim()));
+    const fresh = secs.filter(t => !have.has(t));
+    if (!fresh.length){ showToast("Every driver already has a process-measure card", 3000); return; }
+    beginChange(); fresh.forEach(t => m.process.push({ id: nid(), text: "", forWhat: t })); render();
+    showToast(fresh.length + (fresh.length === 1 ? " card" : " cards") + " added \u2014 now write how you\u2019d count each one", 4500);
+  };
+  bar.appendChild(pull);
+  const copy = document.createElement("button"); copy.className = "tbtn"; copy.textContent = "\u21D2 Copy for the Workbook";
+  copy.title = "Copies the measures as three lines to paste into the Data Plan tab";
+  copy.onclick = () => {
+    const line = (k, label) => m[k].filter(i => (i.text || "").trim()).map(i => label + ": " + i.text.trim() + (i.forWhat ? " (" + i.forWhat.trim() + ")" : "")).join("\n");
+    const txt = [line("outcome", "Outcome"), line("process", "Process"), line("balancing", "Balancing")].filter(Boolean).join("\n");
+    if (!txt){ alert("Nothing to copy yet \u2014 write at least one measure first."); return; }
+    const done = () => showToast("Copied \u2014 paste into the Workbook\u2019s Data Plan tab", 3500);
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(done, () => window.prompt("Copy this for the Data Plan tab:", txt));
+    else window.prompt("Copy this for the Data Plan tab:", txt);
+  };
+  bar.appendChild(copy);
+}
 function renderPitch(board, svg, nodes){
   const P = state.pitch;
   const X = 110, W = 900, CH = 74, GAPY = 16, TOP = 44;
@@ -1295,7 +1398,8 @@ function render(){
   $("tabB").className = "tab" + (state.mode === "pitch" ? " on" : "");
   $("tabG").className = "tab" + (state.mode === "grid" ? " on" : "");
   $("tabF").className = "tab" + (state.mode === "fish" ? " on" : "");
-  ["tabB", "tabG", "tabP", "tabW", "tabF", "tabD"].forEach(id => {
+  $("tabM").className = "tab" + (state.mode === "measures" ? " on" : "");
+  ["tabB", "tabG", "tabP", "tabW", "tabF", "tabD", "tabM"].forEach(id => {
     const t = $(id); if (t.classList.contains("on")) t.setAttribute("aria-current", "true"); else t.removeAttribute("aria-current");
   });
   const board = $("board"), svg = $("lines"), nodes = $("nodes");
@@ -1306,6 +1410,7 @@ function render(){
   else if (state.mode === "pitch") renderPitch(board, svg, nodes);
   else if (state.mode === "grid") renderGrid(board, svg, nodes);
   else if (state.mode === "fish") renderFish(board, svg, nodes);
+  else if (state.mode === "measures") renderMeasures(board, svg, nodes);
   else renderDriver(board, svg, nodes);
   svg.setAttribute("width", 1120); svg.setAttribute("height", parseInt(board.style.height, 10) || 400);
   // "Hide guidance" now means the same thing on every tab: the hint line, the legend and any help cards
@@ -1329,7 +1434,7 @@ function appendGuidanceToggle(bar){
   bar.appendChild(t);
 }
 const HOWTO = [
-  ["Six tabs, left to right", "Stage 1: Pitch (five sentences) \u00B7 2\u00D72 Ideas (what to test first). Stage 2: Process Map (what happens) \u2192 5 Whys (why) \u2192 Fishbone (every likely cause) \u2192 Driver Diagram (what to change)."],
+  ["Seven tabs, left to right", "Stage 1: Pitch (five sentences) \u00B7 2\u00D72 Ideas (what to test first). Stage 2: Process Map (what happens) \u2192 5 Whys (why) \u2192 Fishbone (every likely cause) \u2192 Driver Diagram (what to change) \u2192 Measures (what to count: outcome, process, balancing)."],
   ["Pages = projects", "Each page is a separate project with its own diagrams. Tap \u270E on the page tab to name it."],
   ["+ New page", "Start another project, or a fresh page for cycle 2, without losing this one."],
   ["It saves itself", "Everything autosaves in this browser as you go \u2014 close the tab and it\u2019s still here next time."],
@@ -1423,9 +1528,9 @@ function doPrint(){
   setTimeout(() => { printReset(); state.fit = prevFit; state.sel = prevSel; render(); }, 800);
 }
 
-const MODE_FILE = { process: "process-map", whys: "five-whys", driver: "driver-diagram", pitch: "five-sentence-pitch", grid: "2x2-ideas", fish: "fishbone" };
-const MODE_LABEL = { pitch: "Five-Sentence Pitch", grid: "2\u00d72 Ideas", process: "Process Map", whys: "5 Whys", fish: "Fishbone", driver: "Driver Diagram" };
-const MODE_ORDER = ["pitch", "grid", "process", "whys", "fish", "driver"];
+const MODE_FILE = { process: "process-map", whys: "five-whys", driver: "driver-diagram", pitch: "five-sentence-pitch", grid: "2x2-ideas", fish: "fishbone", measures: "measures" };
+const MODE_LABEL = { pitch: "Five-Sentence Pitch", grid: "2\u00d72 Ideas", process: "Process Map", whys: "5 Whys", fish: "Fishbone", driver: "Driver Diagram", measures: "Measures" };
+const MODE_ORDER = ["pitch", "grid", "process", "whys", "fish", "driver", "measures"];
 
 function exportPNG(){
   if (typeof html2canvas === "undefined"){
@@ -1890,7 +1995,7 @@ function signOutOfSync(){
 }
 /* ---------- boot ---------- */
 const q = new URLSearchParams(location.search);
-if (q.get("mode")){ const m = q.get("mode"); state.mode = ["driver","whys","pitch","grid","fish"].indexOf(m) >= 0 ? m : "process"; }
+if (q.get("mode")){ const m = q.get("mode"); state.mode = ["driver","whys","pitch","grid","fish","measures"].indexOf(m) >= 0 ? m : "process"; }
 const hadLocal = loadLocal();                 // restore this browser's own named, separate projects
 const opened = loadShared(!hadLocal);         // replace only into a truly empty tool; otherwise merge in as new pages
 render();
