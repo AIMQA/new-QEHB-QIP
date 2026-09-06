@@ -1847,6 +1847,10 @@ function signInWithGoogle(){
     if (err.code === "auth/popup-blocked" || err.code === "auth/operation-not-supported-in-this-environment"){
       return fallbackToRedirect().catch(e2 => alert("Couldn\u2019t sign in with Google (" + ((e2 && e2.message) || "check your connection") + ")."));
     }
+    if (err.code === "auth/operation-not-allowed"){
+      alert("Google sign-in isn\u2019t switched on for this Firebase project yet \u2014 enable it under Authentication \u2192 Sign-in method. See COLLABORATION_SETUP.md.");
+      return;
+    }
     alert("Couldn\u2019t sign in with Google (" + (err.message || "check your connection") + ").");
   };
   // The popup must open inside the tap itself \u2014 browsers (especially on phones) block one that opens
